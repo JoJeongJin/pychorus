@@ -5,8 +5,7 @@ import soundfile as sf
 
 
 from pychorus.similarity_matrix import TimeTimeSimilarityMatrix, TimeLagSimilarityMatrix, Line
-from pychorus.constants import N_FFT, SMOOTHING_SIZE_SEC, LINE_THRESHOLD, MIN_LINES, \
-    NUM_ITERATIONS, OVERLAP_PERCENT_MARGIN
+from pychorus.constants import N_FFT, SMOOTHING_SIZE_SEC, LINE_THRESHOLD, MIN_LINES, NUM_ITERATIONS, OVERLAP_PERCENT_MARGIN
 
 
 def local_maxima_rows(denoised_time_lag):
@@ -74,9 +73,18 @@ def count_overlapping_lines(lines, margin, min_length_samples):
 
             if lines_overlap_vertically or lines_overlap_diagonally:
                 line_scores[line_1] += 1
-
+    print(lines)
     return line_scores
 
+def all_segment(line_scores):
+    """모든 segment를 받는다."""
+    lines_to_sort = []
+    for line in line_scores:
+        lines_to_sort.append((line, line_scores[line], line.end - line.start))
+
+    lines_to_sort.sort(key=lambda x: (x[1], x[2]), reverse=True)
+    best_tuple = lines_to_sort[0]
+    return best_tuple[0]
 
 def best_segment(line_scores):
     """Return the best line, sorted first by chorus matches, then by duration"""
@@ -158,6 +166,13 @@ def find_chorus(chroma, sr, song_length_sec, clip_length):
         lines, OVERLAP_PERCENT_MARGIN * clip_length_samples,
         clip_length_samples)
     best_chorus = best_segment(line_scores)
+    # for line in line_scores:
+    #     print(line_scores[0].start)
+    #     print(chroma_sr)
+    #     print(print(line_scores[0].start/chroma_sr))
+    print(best_chorus.start)
+    print(chroma_sr)
+    print(best_chorus.start / chroma_sr)
     return best_chorus.start / chroma_sr
 
 
