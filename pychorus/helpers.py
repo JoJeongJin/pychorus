@@ -83,8 +83,8 @@ def all_segment(line_scores):
         lines_to_sort.append((line, line_scores[line], line.end - line.start))
 
     lines_to_sort.sort(key=lambda x: (x[1], x[2]), reverse=True)
-    best_tuple = lines_to_sort[0]
-    return best_tuple[0]
+    best_tuple = lines_to_sort
+    return best_tuple
 
 def best_segment(line_scores):
     """Return the best line, sorted first by chorus matches, then by duration"""
@@ -160,19 +160,28 @@ def find_chorus(chroma, sr, song_length_sec, clip_length):
     lines = detect_lines(time_lag_similarity.matrix, candidate_rows,
                          clip_length_samples)
     if len(lines) == 0:
-        print("No choruses were detected. Try a smaller search duration")
+        print("No choruses were detected. Try a smaller search duration \n")
         return None
     line_scores = count_overlapping_lines(
         lines, OVERLAP_PERCENT_MARGIN * clip_length_samples,
         clip_length_samples)
     best_chorus = best_segment(line_scores)
+
+    # 이부분이 테스트하는 부분
+    all_verse_and_chorus = all_segment(line_scores)
+    for segment in all_verse_and_chorus:
+        temp = segment[0].start / chroma_sr
+        print("코러스나 벌스로 의심되는 경계 부분 : {0:g} min {1:.2f} sec".format(
+            temp // 60, temp % 60))
+
+
     # for line in line_scores:
     #     print(line_scores[0].start)
     #     print(chroma_sr)
     #     print(print(line_scores[0].start/chroma_sr))
-    print(best_chorus.start)
-    print(chroma_sr)
-    print(best_chorus.start / chroma_sr)
+    # print(best_chorus.start)
+    # print(chroma_sr)
+    # print(best_chorus.start / chroma_sr)
     return best_chorus.start / chroma_sr
 
 
@@ -194,7 +203,7 @@ def find_and_output_chorus(input_file, output_file, clip_length=15):
         return
 
     print("Best chorus found at {0:g} min {1:.2f} sec".format(
-        chorus_start // 60, chorus_start % 60))
+        chorus_start // 60, chorus_start % 60), "\n")
 
     if output_file is not None:
         chorus_wave_data = song_wav_data[int(chorus_start*sr) : int((chorus_start+clip_length)*sr)]
